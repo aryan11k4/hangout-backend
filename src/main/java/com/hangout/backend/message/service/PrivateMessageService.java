@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -41,7 +42,13 @@ public class PrivateMessageService {
                 .content(request.getContent())
                 .build();
 
-        PrivateMessage saved = messageRepository.save(message);
+        // saveAndFlush (not save) - forces the INSERT to run immediately, so
+        // @CreationTimestamp's createdAt is actually populated on the
+        // returned entity before we map it to a DTO. Plain save() can defer
+        // the physical INSERT until later in the transaction, which is why
+        // createdAt was coming back null in the WebSocket push payload even
+        // though the DB row itself ended up correct after commit.
+        PrivateMessage saved = messageRepository.saveAndFlush(message);
         return toDto(saved);
     }
 

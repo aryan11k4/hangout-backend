@@ -48,12 +48,10 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         }
 
         try {
-            // ADJUST: replace with your JwtService's real validation method
             if (!jwtService.isTokenValid(token)) {
                 return false;
             }
 
-            // ADJUST: replace with your JwtService's real extraction method
             UUID userId = jwtService.extractUserId(token);
 
             User user = userRepository.findById(userId).orElse(null);

@@ -10,15 +10,21 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 /**
  * STOMP-over-WebSocket setup.
  * <p>
- * Endpoint: /ws (SockJS fallback included for browsers/networks that block
- * raw WebSocket upgrades).
+ * Endpoint: /ws (plain WebSocket, no SockJS).
  * <p>
  * Client sends to:      /app/private-message.send
  * Client subscribes to: /user/queue/private-messages   (per-user private queue)
  * <p>
- * The "/user" prefix + convertAndSendToUser(...) in the service/controller
- * is how Spring routes a message to one specific authenticated user's
- * session, which is exactly what one-to-one messaging needs.
+ * IMPORTANT: "/user" must NOT be listed in enableSimpleBroker(...). It is a
+ * reserved prefix handled separately by Spring's UserDestinationMessageHandler,
+ * which rewrites "/user/queue/private-messages" into a session-specific
+ * physical destination like "/queue/private-messages-userABC123" before the
+ * broker ever sees it. Registering "/user" as an actual broker destination
+ * prefix causes it to be treated as a literal topic instead of being
+ * rewritten, so convertAndSendToUser(...) silently goes nowhere.
+ * setUserDestinationPrefix("/user") below is what actually wires up the
+ * per-user routing - the broker itself only needs to know about "/topic"
+ * and "/queue".
  */
 @Configuration
 @EnableWebSocketMessageBroker
@@ -32,14 +38,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*") // tighten before prod, same as CORS
                 .addInterceptors(jwtHandshakeInterceptor)
-                .setHandshakeHandler(new StompPrincipalHandshakeHandler())
-                .withSockJS();
+                .setHandshakeHandler(new StompPrincipalHandshakeHandler());
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app"); // client -> server
-        registry.enableSimpleBroker("/user", "/topic");     // server -> client
+        registry.enableSimpleBroker("/topic", "/queue");    // server -> client (NOT "/user")
         registry.setUserDestinationPrefix("/user");         // enables convertAndSendToUser
     }
 }
