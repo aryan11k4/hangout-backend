@@ -46,6 +46,9 @@ public class User {
     @Column(length = 500)
     private String bio;
 
+    @Column(name = "contact_code", length = 3)
+    private String contactCode;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
