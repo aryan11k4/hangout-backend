@@ -34,7 +34,7 @@ public class User {
     @Column(nullable = false, length = 255)
     private String email;
 
-    @Column(nullable = false, length = 255)
+    @Column(length = 255)  //made it  nullable
     private String password;
 
     @Column(name = "display_name", length = 100)
@@ -65,4 +65,13 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @Column(name = "google_id", unique = true)
+    private String googleId;
+
+    @Column(name = "auth_provider", nullable = false, length = 20)
+    @Builder.Default
+    private String authProvider = "LOCAL"; // "LOCAL" or "GOOGLE" - purely informational,
+    // doesn't gate anything by itself since a user
+    // can have both a password AND a googleId
 }

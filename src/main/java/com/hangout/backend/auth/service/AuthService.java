@@ -12,6 +12,7 @@ import com.hangout.backend.security.jwt.JwtService;
 import com.hangout.backend.security.principal.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,25 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+        // Checked BEFORE authenticationManager.authenticate() runs. If we let
+        // a null-password account reach AuthenticationManager, Spring
+        // Security's DaoAuthenticationProvider calls
+        // passwordEncoder.matches(rawPassword, null) internally, which
+        // throws IllegalArgumentException - an unchecked exception that
+        // GlobalExceptionHandler's generic handler would mask as a vague
+        // 500, not a clean 401. Failing fast here with BadCredentialsException
+        // keeps the existing @ExceptionHandler(BadCredentialsException.class)
+        // -> 401 mapping working correctly for this case too.
+        User existing = userRepository.findByUsername(request.usernameOrEmail())
+                .or(() -> userRepository.findByEmail(request.usernameOrEmail()))
+                .orElse(null);
+
+        if (existing != null && existing.getPassword() == null) {
+            throw new BadCredentialsException(
+                    "This account uses Google Sign-In. Log in with Google, " +
+                            "or set a password from your account settings first.");
+        }
+
         var authToken = new UsernamePasswordAuthenticationToken(
                 request.usernameOrEmail(), request.password());
         var authentication = authenticationManager.authenticate(authToken);
