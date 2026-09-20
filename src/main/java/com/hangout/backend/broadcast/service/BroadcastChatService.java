@@ -58,10 +58,13 @@ public class BroadcastChatService {
         }
     }
 
+    // shared by both sendMessage (live WS payload) and getHistory (REST
+    // response) - always stamps type = CHAT_MESSAGE via the DTO's factory
+    // method, see BroadcastChatMessageDto for why this field is required.
     private BroadcastChatMessageDto toDto(BroadcastMessage message) {
         User sender = userRepository.findById(message.getSenderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
-        return new BroadcastChatMessageDto(
+        return BroadcastChatMessageDto.of(
                 message.getId(),
                 message.getBroadcastId(),
                 message.getSenderId(),

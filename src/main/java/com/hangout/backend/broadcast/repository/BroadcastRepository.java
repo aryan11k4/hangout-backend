@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.Instant;
 
 public interface BroadcastRepository extends JpaRepository<Broadcast, UUID> {
 
@@ -15,4 +16,6 @@ public interface BroadcastRepository extends JpaRepository<Broadcast, UUID> {
     Optional<Broadcast> findByIdAndStatus(UUID id, BroadcastStatus status);
 
     List<Broadcast> findByHostIdAndStatus(UUID hostId, BroadcastStatus status);
+
+    List<Broadcast> findByStatusAndCreatedAtBefore(BroadcastStatus status, Instant cutoff);
 }
