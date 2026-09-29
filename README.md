@@ -1,5 +1,7 @@
 This is backend project for a Group Chat application.
 
+Deployed on: https://hangout-backend-4px2.onrender.com/swagger-ui/index.html#/
+
 ## WebSocket API — Private Messaging (STOMP over WebSocket)
 
 Real-time private messaging uses STOMP over a raw WebSocket connection
