@@ -1,0 +1,15 @@
+target/
+.git/
+.gitignore
+.idea/
+*.iml
+.vscode/
+.DS_Store
+*.log
+
+# Never bake local env/secret files into the image - Render env vars are
+# set in its dashboard instead, same as your existing local setup
+.env
+.env.*
+application-local.yml
+application-local.properties
