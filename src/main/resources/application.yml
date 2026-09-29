@@ -38,6 +38,12 @@ app:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
 
+  oauth:
+    redirect-uri: ${OAUTH_FRONTEND_REDIRECT:http://localhost:3000/oauth/callback}
+    
+  youtube:
+    api-key: ${YOUTUBE_API_KEY}
+
 logging:
   level:
     com.hangout.backend: DEBUG
